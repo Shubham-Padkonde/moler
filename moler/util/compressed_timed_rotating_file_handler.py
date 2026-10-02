@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import subprocess
+import shlex
 import os
 from logging.handlers import TimedRotatingFileHandler
 
@@ -30,6 +31,9 @@ class CompressedTimedRotatingFileHandler(TimedRotatingFileHandler):
 
     def _compress_file(self, filename):
         if os.path.exists(filename):
-            full_pack_command = self.compress_command.format(compressed=filename + self.compressed_file_extension,
-                                                             log_input=filename)  # pylint-disable-line: consider-using-f-string
-            subprocess.Popen(full_pack_command.split())
+            # Split the template before interpolation so filenames remain single arguments.
+            full_pack_command = [
+                argument.format(compressed=filename + self.compressed_file_extension, log_input=filename)
+                for argument in shlex.split(self.compress_command)
+            ]
+            subprocess.Popen(full_pack_command)

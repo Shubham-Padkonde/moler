@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import subprocess
+import shlex
 import os
 from logging.handlers import RotatingFileHandler
 
@@ -31,10 +32,12 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
     def _compress_file(self, filename):
         if os.path.exists(filename):
             # pylint: disable-next=consider-using-f-string
-            full_pack_command = self.compress_command.format(compressed=f"{filename}{self.compressed_file_extension}",
-                                                             log_input=filename)
-            subprocess.Popen(full_pack_command.split())  # Potential issue if pack command takes more time than next
-            #                                              log rotation.
+            # Split the template before interpolation so filenames remain single arguments.
+            full_pack_command = [
+                argument.format(compressed=filename + self.compressed_file_extension, log_input=filename)
+                for argument in shlex.split(self.compress_command)
+            ]
+            subprocess.Popen(full_pack_command)
 
     def doRollover(self):
         """
