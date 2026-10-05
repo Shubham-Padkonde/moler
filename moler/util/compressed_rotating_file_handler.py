@@ -3,14 +3,15 @@
 Compress logs after time rotation.
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski, Shubham Padkonde'
 __copyright__ = 'Copyright (C) 2022, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, shubhampadkonde12@gmail.com'
 
 import subprocess
-import shlex
 import os
 from logging.handlers import RotatingFileHandler
+
+from moler.util.compression_command import split_compression_command
 
 
 class CompressedRotatingFileHandler(RotatingFileHandler):
@@ -35,7 +36,7 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
             # Split the template before interpolation so filenames remain single arguments.
             full_pack_command = [
                 argument.format(compressed=filename + self.compressed_file_extension, log_input=filename)
-                for argument in shlex.split(self.compress_command)
+                for argument in split_compression_command(self.compress_command)
             ]
             subprocess.Popen(full_pack_command)
 
